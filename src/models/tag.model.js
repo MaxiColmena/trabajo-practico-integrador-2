@@ -1,6 +1,6 @@
 import { Schema, model} from "mongoose";
 
-const TagSchema = new mongoose.Schema({
+const TagSchema = new Schema({ //esto es un nuevo esquema
   name: {
     type: String,
     required: true,
@@ -15,7 +15,9 @@ const TagSchema = new mongoose.Schema({
     required: false,
   },
   }, {
-  timestamps: true
+  timestamps: true, //esto crea createdAt y updatedAt
+  versionKey: false //esto quita el __v que crea mongoose
 });
 
 export const TagModel = model("Tag", TagSchema);
+

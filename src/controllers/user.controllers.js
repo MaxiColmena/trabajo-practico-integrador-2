@@ -5,8 +5,8 @@ export const deleteUser = async (req, res) => {
   try {
     const deleteUser = await UserModel.findOneAndUpdate(
       _id,
-      { deleteAt: new Date() },
-      { new: true }
+      { deleteAt: new Date() }, //coloca la fecha en la que se eliminó
+      { new: true } //para que actualice el documento y no devuelva el antiguo
     );
     return res.status(200).json({
       msg: "Usuario eliminado correctamente",
@@ -66,3 +66,4 @@ export const updateUser = async (req, res) => {
     });
   }
 };
+

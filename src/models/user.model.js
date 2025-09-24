@@ -1,4 +1,6 @@
-import mongoose from "mongoose";
+import { Schema, model} from "mongoose";
+
+const ObjectId = Schema.Types.ObjectId
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -16,13 +18,13 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    require: true,
+    required: true,
   },
   role: {
-    type: string,
+    type: String,
     default: "user",
     enum: ["user", "admin"],
-    required: false
+    required: true
   },
   profile: {
     firstName: { type: String, minLength: 2, maxLength: 50, required: true },
@@ -30,7 +32,11 @@ const UserSchema = new mongoose.Schema({
     biography: { type: String, maxLength: 500, required: false },
     avatarUrl: { type: String, required: false, match: /^(https?:\/\/)([\w.-]+)\.([a-z\.]{2,})([\/\w .-])\/?$/i },
     birthdate: { type: Date, required}
-  }
+  },
+  deletedAt: {
+    type: Date,
+    default: null,
+  },
 }, {
   timestamps: true
 });

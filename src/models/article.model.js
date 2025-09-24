@@ -1,4 +1,6 @@
-import mongoose from "mongoose";
+import { Schema, model} from "mongoose";
+
+const ObjectId = Schema.Types.ObjectId
 
 const ArticleSchema = new mongoose.Schema({
 title: {
@@ -15,6 +17,7 @@ title: {
     excerpt: {
       type: String,
       maxLength: 500,
+      required: false
     },
     status: {
       type: String,
@@ -22,16 +25,15 @@ title: {
       default: "published",
     },
     author: {
-      type: Schema.Types.ObjectId,
+      type: ObjectId,
       ref: "User",
       required: true,
     },
     tags: [
       {
-        type: Schema.Types.ObjectId,
+        type: ObjectId,
         ref: "Tag",
-      },
-    ],
+      }],
   },
   {
     timestamps: true,

@@ -1,4 +1,6 @@
-import mongoose from "mongoose";
+import { Schema, model} from "mongoose";
+
+const ObjectId = Schema.Types.ObjectId
 
 const CommentSchema = new mongoose.Schema({
 content: {
@@ -8,12 +10,12 @@ content: {
       required: true,
     },
     author: {
-      type: Schema.Types.ObjectId,
+      type: ObjectId,
       ref: "User",
       required: true,
     },
     article: {
-      type: Schema.Types.ObjectId,
+      type: ObjectId,
       ref: "Article",
       required: true,
     },

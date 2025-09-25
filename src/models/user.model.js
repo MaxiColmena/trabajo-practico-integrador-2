@@ -41,4 +41,10 @@ const UserSchema = new mongoose.Schema({
   timestamps: true
 });
 
+UserSchema.pre('find', function(next) {
+  this.where({ deletedAt: null });
+  next();
+}
+);
+
 export const UserModel = model("User", UserSchema);

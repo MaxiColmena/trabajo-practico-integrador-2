@@ -1,7 +1,7 @@
 import { body } from "express-validator";
 
 export const createUserValidation = [
-  body("useName")
+  body("username")
     .notEmpty()
     .isString()
     .isLength({ min: 3, max: 20 })
@@ -46,4 +46,29 @@ export const createUserValidation = [
     .withMessage("Debe ingresar una fecha valida"),
 ];
 
-export const updateUserValidation = [];
+export const updateUserValidation = [
+  body("username")
+    .optional()
+    .isString()
+    .isLength({ min: 3, max: 20 })
+    .withMessage("Debe ingresar un nombre de usuario valido")
+    .custom((nameunique) => {
+      if (nameunique) {
+        return Promise.reject("El nombre de usuario ya está en uso");
+      }
+      return true;
+    }),
+  body("email")
+    .optional()
+    .isString()
+    .isEmail()
+    .withMessage("Debe ingresar un email valido"),
+  body("password")
+    .optional()
+    .isString()
+    .withMessage("Debe ingresar una contraseña valida"),
+  body("role")
+    .optional()
+    .isIn(["user", "admin"])
+    .withMessage("Debe ingresar un rol valido (admin, user)"),
+];

@@ -1,74 +1,66 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
+import { UserModel } from "../../models/user.model.js";
 
-export const createUserValidation = [
-  body("username")
-    .notEmpty()
-    .isString()
-    .isLength({ min: 3, max: 20 })
-    .withMessage("Debe ingresar un nombre de usuario valido"),
-  body("email")
-    .notEmpty()
-    .isString()
-    .isEmail()
-    .withMessage("Debe ingresar un email valido"),
-  body("password")
-    .notEmpty()
-    .isString()
-    .withMessage("Debe ingresar una contraseña valida"),
-  body("role")
-    .notEmpty()
-    .isIn(["user", "admin"])
-    .withMessage("Debe ingresar un rol valido (admin, user)"),
-  body("profile.firstname")
-    .notEmpty()
-    .isString()
-    .isLength({ min: 2, max: 50 })
-    .withMessage("Debe ingresar un nombre valido"),
-  body("profile.lastname")
-    .notEmpty()
-    .isString()
-    .isLength({ min: 2, max: 50 })
-    .withMessage("Debe ingresar un apellido valido"),
-  body("profile.biography")
-    .optional()
-    .isString()
-    .isLength({ max: 500 })
-    .withMessage("Debe ingresar una biografia valida"),
-  body("profile.avatarUrl")
-    .optional()
-    .isString()
-    .isURL()
-    .withMessage("Debe ingresar una URL valida del avatar"),
-  body("profile.birthdate")
-    .optional()
-    .isString()
-    .isDate()
-    .withMessage("Debe ingresar una fecha valida"),
+export const idUserValidations = [
+  param("id")
+    .isMongoId()
+    .withMessage("El id debe no es válido")
+    .custom(async (id) => {
+      const user = await UserModel.findOne({ _id: id });
+
+      if (!user) {
+        throw new Error("El usuario no existe");
+      }
+
+      return true;
+    }),
 ];
 
-export const updateUserValidation = [
+export const updateUserValidations = [
   body("username")
     .optional()
-    .isString()
+    .notEmpty()
+    .withMessage("El nombre de usuario es obligatorio")
     .isLength({ min: 3, max: 20 })
-    .withMessage("Debe ingresar un nombre de usuario valido")
-    .custom((nameunique) => {
-      if (nameunique) {
-        return Promise.reject("El nombre de usuario ya está en uso");
+    .withMessage("El nombre de usuario debe tener entre 3 y 20 caracteres")
+    .isAlphanumeric()
+    .withMessage("El nombre de usuario solo puede contener letras y números")
+    .custom(async (username, { req }) => {
+      const user = await UserModel.findOne({
+        username,
+        _id: { $ne: req.params._id },
+      });
+      if (user) {
+        throw new Error("Username ya está en uso");
       }
       return true;
     }),
+
   body("email")
     .optional()
-    .isString()
+    .notEmpty()
+    .withMessage("El email es obligatorio")
     .isEmail()
-    .withMessage("Debe ingresar un email valido"),
+    .withMessage("Debe ser un email válido")
+    .custom(async (email, { req }) => {
+      const emailExiste = await UserModel.findOne({
+        email: email,
+        _id: { $ne: req.params.id },
+      });
+      if (emailExiste) {
+        throw new Error("El email ya está en uso");
+      }
+      return true;
+    }),
+
   body("password")
     .optional()
-    .isString()
-    .withMessage("Debe ingresar una contraseña valida"),
-  body("role")
-    .optional()
-    .isIn(["user", "admin"])
-    .withMessage("Debe ingresar un rol valido (admin, user)"),
+    .notEmpty()
+    .withMessage("La contraseña es obligatoria")
+    .isLength({ min: 6 })
+    .withMessage("La contraseña debe tener al menos 6 caracteres")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)
+    .withMessage(
+      "La contraseña debe contener al menos una letra mayúscula, una letra minúscula y un número"
+    ),
 ];

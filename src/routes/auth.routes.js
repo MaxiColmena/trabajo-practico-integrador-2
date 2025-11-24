@@ -1,10 +1,35 @@
-import { Router } from "express";
-import { registerUser, loginUser, getUserProfile, updateUseProfile, logoutUser } from "../controllers/auth.controllers.js";
-import { createUserValidation } from "../middlewares/validations/auth.validations.js";
-export const authRoutes = Router();
+import express from "express";
+import {
+  getProfileAuth,
+  login,
+  logout,
+  register,
+  updateAuthProfile,
+} from "../controllers/auth.controllers.js";
+import { aplicarValidaciones } from "../middlewares/validator.js";
+import { dataValida } from "../middlewares/match.js";
+import { authMiddleware } from "../middlewares/auth.js";
+import {
+  createUserValidation,
+  soloProfileValidation,
+} from "../middlewares/validations/auth.validation.js";
 
-authRoutes.post("/auth/register", createUserValidation, registerUser);
-authRoutes.post("/auth/login", loginUser);
-authRoutes.get("/auth/profile", getUserProfile);
-authRoutes.put("/auth/profile", updateUseProfile);
-authRoutes.put("/auth/logout", logoutUser);
+export const routerAuth = express.Router();
+routerAuth.post(
+  "/auth/register",
+  createUserValidation,
+  aplicarValidaciones,
+  dataValida,
+  register
+);
+routerAuth.post("/auth/login", login);
+routerAuth.post("/auth/logout", authMiddleware, logout);
+routerAuth.get("/auth/profile", authMiddleware, getProfileAuth);
+routerAuth.put(
+  "/auth/profile",
+  authMiddleware,
+  soloProfileValidation,
+  aplicarValidaciones,
+  dataValida,
+  updateAuthProfile
+);

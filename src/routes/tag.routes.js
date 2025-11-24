@@ -5,7 +5,7 @@ import {
   getAllTags,
   getByIdTag,
   updateTag,
-} from "../controllers/tags.controllers.js";
+} from "../controllers/tag.controllers.js";
 import { aplicarValidaciones } from "../middlewares/validator.js";
 import { authMiddleware } from "../middlewares/auth.js";
 import { dataValida } from "../middlewares/match.js";

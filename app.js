@@ -1,23 +1,20 @@
 import cors from "cors";
+import "dotenv/config";
 import express from "express";
-import dotenv from "dotenv";
 import { connectDB } from "./src/config/database.js";
-
-dotenv.config();
+import { routesVarias } from "./src/routes/index.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT;
 
-app.use(express.json()); 
+app.use(express.json());
+app.use(cookieParser());
 app.use(cors());
 
-// app.use("/api/users", userRoutes);
-
-app.get("/", (req, res) => {
-  res.json({ message: "API funcionando correctamente" });
-});
+app.use("/api", routesVarias);
 
 app.listen(PORT, async () => {
   await connectDB();
-  console.log("Servidor corriendo en el puerto: ", PORT);
+  console.log(`Servidor escuchando en el puerto ${PORT}`);
 });

@@ -12,7 +12,7 @@ import { authMiddleware } from "../middlewares/auth.js";
 import {
   createUserValidation,
   soloProfileValidation,
-} from "../middlewares/validations/auth.validation.js";
+} from "../middlewares/validations/auth.validations.js";
 
 export const routerAuth = express.Router();
 routerAuth.post(

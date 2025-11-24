@@ -1,49 +1,133 @@
+import { matchedData } from "express-validator";
 import { ArticleModel } from "../models/article.model.js";
 
-export const createArticle = async (req, res) => {
-  const { title, content, excerpt, status, author, tags } = req.body;
+export const articleCreate = async (req, res) => {
+  const data = matchedData(req, { locations: ["body"] });
+
+  data.author = req.logeado._id;
+
+  console.log(data);
+
   try {
-    console.log(req.body);
-    const article = await ArticleModel.create({
-      title,
-      content,
-      excerpt,
-      status,
-      author,
-      tags,
-    });
+    const article = await ArticleModel.create(data);
+
     return res.status(201).json({
-      msg: "Articulo creado correctamente",
+      ok: true,
+      message: "Artículo creado exitosamente",
       data: article,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }
 };
 
-export const getAllArticles = async (req, res) => {
+export const getAllArticles = async (_req, res) => {
   try {
-    const article = await ArticleModel.find();
-    return res.status(200).json(article);
+    const articles = await ArticleModel.find()
+      .populate("author")
+      .populate("tags");
+    if (!articles) {
+      return res.status(404).json({
+        ok: false,
+        message: "No se encontro ningun articulo",
+      });
+    }
+    res.status(200).json({
+      ok: true,
+      message: "Articulos encontrados",
+      articles,
+    });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }
 };
 
-export const getArticleById = async (req, res) => {
+export const getByIdArticle = async (req, res) => {
   const { id } = req.params;
   try {
-    const article = await ArticleModel.findById(id);
-    return res.status(200).json(article);
+    const article = await ArticleModel.findById(id)
+      .populate("author")
+      .populate("tags");
+    if (!article) {
+      return res.status(404).json({
+        ok: false,
+        message: "No se encontro el artículo",
+      });
+    }
+    res.status(200).json({
+      ok: true,
+      message: "Articulo encontrado",
+      article,
+    });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Error interno del servidor",
+    });
+  }
+};
+
+export const getMyArticles = async (req, res) => {
+  try {
+    const logueado = req.logeado;
+
+    const myArticles = await ArticleModel.find({ author: logueado._id });
+    if (!myArticles) {
+      return res.status(404).json({
+        ok: false,
+        message: "No posees artículos",
+      });
+    }
+    return res.status(200).json({
+      ok: true,
+      message: "Tus articulos",
+      articles: myArticles,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Error interno del servidor",
+    });
+  }
+};
+
+export const updateMyArticle = async (req, res) => {
+  const { id } = req.params;
+  const data = matchedData(req, { locations: ["body"] });
+
+  try {
+    const updatedArticle = await ArticleModel.findByIdAndUpdate(
+      id,
+      {
+        $set: data,
+      },
+      { new: true }
+    );
+    if (!updatedArticle) {
+      return res.status(404).json({
+        ok: false,
+        message: "Artículo no encontrado",
+      });
+    }
+    res.status(201).json({
+      ok: true,
+      message: "Articulo actualizado correctamente",
+      updatedArticle,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }
@@ -52,58 +136,23 @@ export const getArticleById = async (req, res) => {
 export const deleteArticle = async (req, res) => {
   const { id } = req.params;
   try {
-    const article = await ArticleModel.findOneAndDelete(id);
-    return res.status(200).json({
-      msg: "Articulo eliminado",
-      data: article,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(501).json({
-      msg: "Error interno del servidor",
-    });
-  }
-};
+    const deletedArticle = await ArticleModel.findByIdAndDelete(id);
 
-export const updateArticle = async (req, res) => {
-  const { id } = req.params;
-  const { title, content, excerpt, status, tags } = req.body;
-  try {
-    const article = await ArticleModel.findByIdAndUpdate(
-      id,
-      {
-        title,
-        content,
-        excerpt,
-        status,
-        tags,
-      },
-      { new: true }
-    );
-    return res.status(201).json({
-      msg: "Articulo actualizado correctamente",
-      data: article,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(501).json({
-      msg: "Error interno del servidor",
-    });
-  }
-};
-
-export const getUserLogArticles = async (req, res) => {
-  const user = req.userLog;
-  try {
-    console.log(user);
-    const article = await ArticleModel.find({ author: user.id });
+    if (!deletedArticle) {
+      return res.status(404).json({
+        ok: false,
+        message: "Artículo no encontrado",
+      });
+    }
     return res.status(200).json({
-      msg: "Tus articulos:",
-      data: article,
+      ok: true,
+      message: "Articulo eliminado exitosamente",
+      deletedArticle,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }

@@ -1,31 +1,75 @@
+import { ArticleModel } from "../models/article.model.js";
 import { CommentModel } from "../models/comment.model.js";
 
 export const createComment = async (req, res) => {
-  const { content, author, article } = req.body;
+  const data = req.data;
+
+  data.author = req.logeado._id;
   try {
-    const comment = await CommentModel.create({ content, author, article });
+    const comment = await CommentModel.create(data);
+
     return res.status(201).json({
-      msg: "Comentado publicado correctamente",
-      data: comment,
+      ok: true,
+      message: "Comentario creado con exito",
+      comment,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }
 };
 
-export const getAllComments = async (req, res) => {
+export const getCommentsArticle = async (req, res) => {
+  const { articleId } = req.params;
   try {
-    const comment = await CommentModel.find();
-    return res.status(200).json({
-      msg: "Todos los comentarios:",
-      data: comment,
+    const commentArt = await ArticleModel.findById(articleId)
+      .populate("Comments")
+      .populate("author");
+
+    if (!commentArt) {
+      return res.status(404).json({
+        ok: false,
+        message: "No hay ningun articulo",
+      });
+    }
+
+    res.status(200).json({
+      ok: true,
+      message: "El artículo con sus comentarios y author son:",
+      commentArt,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Error interno del servidor",
+    });
+  }
+};
+
+export const getMyComments = async (req, res) => {
+  try {
+    const logueado = req.logeado;
+    const mycomments = await CommentModel.find({ author: logueado._id });
+    if (!mycomments) {
+      return res.status(404).json({
+        ok: false,
+        message: "Mensajes no encontrados",
+      });
+    }
+
+    res.status(200).json({
+      ok: true,
+      message: "Los comentarios encontrados son:",
+      mycomments,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }
@@ -33,20 +77,33 @@ export const getAllComments = async (req, res) => {
 
 export const updateComment = async (req, res) => {
   const { id } = req.params;
-  const { content } = req.body;
+  const data = req.data;
+
   try {
-    const comment = await CommentModel.findByIdAndUpdate(
+    const updatedComment = await CommentModel.findByIdAndUpdate(
       id,
-      { content },
+      {
+        $set: data,
+      },
       { new: true }
     );
-    return res.status(201).json({
-      msg: "Commentario editado correctamente",
-      data: comment,
+
+    if (!updatedComment) {
+      return res.status(404).json({
+        ok: false,
+        message: "Comentario no encontrado",
+      });
+    }
+
+    res.status(201).json({
+      ok: true,
+      message: "Comentario actualizado",
+      updatedComment,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }
@@ -55,43 +112,23 @@ export const updateComment = async (req, res) => {
 export const deleteComment = async (req, res) => {
   const { id } = req.params;
   try {
-    const comment = await CommentModel.findByIdAndDelete(id);
-    return res.status(200).json({
-      msg: "Comentario eliminado correctamente",
-      data: comment,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(501).json({
-      msg: "Error interno del servidor",
-    });
-  }
-};
+    const deletedComment = await CommentModel.findByIdAndDelete(id);
+    if (!deletedComment) {
+      return res.status(404).json({
+        ok: false,
+        message: "Comentario no encontrado",
+      });
+    }
 
-export const getCommentById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const comment = await CommentModel.findById(id);
-    return res.status(200).json(comment);
-  } catch (error) {
-    console.log(error);
-    return res.status(501).json({
-      msg: "Error interno del servidor",
-    });
-  }
-};
-
-export const getUserLogComments = async (req, res) => {
-  const user = req.userLog;
-  try {
-    const comment = await CommentModel.find({ author: user.id });
     return res.status(200).json({
-      msg: "Comentarios hechos:",
-      data: comment,
+      ok: true,
+      message: "Comentario eliminado",
+      deletedComment,
     });
   } catch (error) {
-    console.log(error);
-    return res.status(501).json({
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
       msg: "Error interno del servidor",
     });
   }

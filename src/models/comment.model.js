@@ -1,27 +1,26 @@
-import { Schema, model} from "mongoose";
+import { Schema, model } from "mongoose";
 
-const ObjectId = Schema.Types.ObjectId
-
-const CommentSchema = new mongoose.Schema({
-content: {
+const CommentSchema = new Schema(
+  {
+    content: {
       type: String,
+      required: true,
       minLength: 5,
       maxLength: 500,
-      required: true,
     },
     author: {
-      type: ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     article: {
-      type: ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Article",
-      required: true,
     },
   },
   {
     timestamps: true,
-});
+    versionKey: false,
+  }
+);
 
 export const CommentModel = model("Comment", CommentSchema);
